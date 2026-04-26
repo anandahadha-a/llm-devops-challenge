@@ -75,3 +75,37 @@ resource "azurerm_subnet_network_security_group_association" "private" {
   subnet_id                 = azurerm_subnet.private.id
   network_security_group_id = azurerm_network_security_group.private.id
 }
+
+resource "azurerm_storage_account" "model_storage" {
+  name                     = "st${replace(var.project_name, "-", "")}${var.environment}"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  min_tls_version                 = "TLS1_2"
+  allow_nested_items_to_be_public = false
+  public_network_access_enabled   = false
+
+  tags = local.common_tags
+}
+
+resource "azurerm_storage_container" "models" {
+  name                  = "models"
+  storage_account_name  = azurerm_storage_account.model_storage.name
+  container_access_type = "private"
+}
+
+resource "azurerm_user_assigned_identity" "llm_identity" {
+  name                = "id-${var.project_name}-${var.environment}-llm"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  tags = local.common_tags
+}
+
+resource "azurerm_role_assignment" "llm_storage_reader" {
+  scope                = azurerm_storage_account.model_storage.id
+  role_definition_name = "Storage Blob Data Reader"
+  principal_id         = azurerm_user_assigned_identity.llm_identity.principal_id
+}
