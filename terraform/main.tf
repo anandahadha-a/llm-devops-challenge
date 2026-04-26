@@ -109,3 +109,22 @@ resource "azurerm_role_assignment" "llm_storage_reader" {
   role_definition_name = "Storage Blob Data Reader"
   principal_id         = azurerm_user_assigned_identity.llm_identity.principal_id
 }
+
+resource "azurerm_servicebus_namespace" "main" {
+  name                = "sb-${var.project_name}-${var.environment}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  sku                 = "Standard"
+
+  tags = local.common_tags
+}
+
+resource "azurerm_servicebus_queue" "inference_jobs" {
+  name         = "inference-jobs"
+  namespace_id = azurerm_servicebus_namespace.main.id
+
+  max_delivery_count                   = 5
+  lock_duration                        = "PT5M"
+  default_message_ttl                  = "P1D"
+  dead_lettering_on_message_expiration = true
+}
