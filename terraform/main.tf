@@ -14,3 +14,64 @@ resource "azurerm_resource_group" "main" {
 
   tags = local.common_tags
 }
+
+resource "azurerm_virtual_network" "main" {
+  name                = "vnet-${var.project_name}-${var.environment}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  address_space       = var.vnet_address_space
+
+  tags = local.common_tags
+}
+
+resource "azurerm_subnet" "public" {
+  name                 = "snet-public-${var.environment}"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.public_subnet_prefix]
+}
+
+resource "azurerm_subnet" "private" {
+  name                 = "snet-private-llm-${var.environment}"
+  resource_group_name  = azurerm_resource_group.main.name
+  virtual_network_name = azurerm_virtual_network.main.name
+  address_prefixes     = [var.private_subnet_prefix]
+}
+
+resource "azurerm_network_security_group" "public" {
+  name                = "nsg-public-${var.project_name}-${var.environment}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  tags = local.common_tags
+}
+
+resource "azurerm_network_security_group" "private" {
+  name                = "nsg-private-llm-${var.project_name}-${var.environment}"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+
+  security_rule {
+    name                       = "deny-internet-inbound"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Deny"
+    protocol                   = "*"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
+
+  tags = local.common_tags
+}
+
+resource "azurerm_subnet_network_security_group_association" "public" {
+  subnet_id                 = azurerm_subnet.public.id
+  network_security_group_id = azurerm_network_security_group.public.id
+}
+
+resource "azurerm_subnet_network_security_group_association" "private" {
+  subnet_id                 = azurerm_subnet.private.id
+  network_security_group_id = azurerm_network_security_group.private.id
+}
