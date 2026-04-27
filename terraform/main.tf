@@ -162,7 +162,7 @@ resource "azurerm_linux_virtual_machine" "llm_vm" {
 
   admin_ssh_key {
     username   = "azureuser"
-    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCScCz43e0orV1MuLhyecnf0nOR0jBvl/+V+TwsbBbjogj8buV+I8Xwsr3gtoXAw15Uss5uAKCd6ENVuQrisxRCZDBUlv523XjS6cX4V5awuYQGjDIx4RK4ByTlvnFPX4LwwnPguFrW7O+jfRkkK3iv9BlBi8VwA/EmhkzhTv28C71nRZkK9xoJnd5sF76JwQwHxlbzl+6RbpKMcd8Alv9j7vVUm14Swu2nfGkKDMmlk6kD7RVBug6AToQdP33HEUG3HCEYiat+52y+y4eUp4N6lPfOPZkijnAfdv6NhmY3Y2anMItxjW/J2N8fx/jWfIObwJakP5n1YgqZWA6msa7DbCOoKxC6LpWI2ka+DQH8WomlmIWiwKxg/MP9x70MXkJpS6QI+nAN6i3HAeRm6T4kIEc98LRIFRIb0WkCwfIKlKoKIXio+Qv/fr6P/I+LJLUe0w/IXNDcsCq7g1IB9Ep2rqmwEhaDnuMiXACRZD40S97R5MyxTRqJ347PvB8vRuLcZ2TFcoxmH/P7UDMMRUw2f19oFvsG1z6hDdXr5hjV6WwRA0P7TpRZoD8xKqCI5Xvwy27n8jI0MaGXtMXiB4k9JQwJiFSLrcox7WXdbxLpGsPPpNLmyqiUouSLSGxE3sM+uy/mV7sCqYzC58/PpwDyWQl2ySfxYzCvFlr3K591/w== anand@AnanDahadha"
+    public_key = var.admin_ssh_public_key
   }
 
   os_disk {

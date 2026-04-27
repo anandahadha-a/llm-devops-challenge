@@ -39,3 +39,9 @@ variable "private_subnet_prefix" {
   type        = string
   default     = "10.20.2.0/24"
 }
+
+variable "admin_ssh_public_key" {
+  description = "SSH public key used for VM access."
+  type        = string
+  sensitive   = true
+}
