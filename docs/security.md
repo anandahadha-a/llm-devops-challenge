@@ -203,3 +203,27 @@ trivy config terraform/
 
 
 Example finding: Storage account network rules should explicitly deny all traffic by default. In a production setup, this would be enforced using private endpoints and network access rules.
+
+
+## Security Scan Results
+
+IaC security scans were performed using Trivy and Checkov.
+
+The scans identified several recommendations related to:
+
+- Storage logging and monitoring
+- Customer-managed encryption keys
+- Private endpoints
+- Service Bus advanced security configurations
+
+These findings are expected in a simplified, non-production design.
+
+In a production environment, the following improvements would be implemented:
+
+- Enable diagnostic logging for storage services
+- Use Azure Key Vault with customer-managed keys
+- Configure private endpoints for Storage and Service Bus
+- Disable public access for messaging services
+- Enable soft delete and backup policies
+
+The current implementation focuses on core security principles while keeping the design simple and aligned with the task scope.
