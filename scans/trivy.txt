@@ -26,10 +26,10 @@ The default action should be set to Deny.
 
 See https://avd.aquasec.com/misconfig/azu-0012
 ────────────────────────────────────────
- main.tf:79-91
+ main.tf:79-92
 ────────────────────────────────────────
   79 ┌ resource "azurerm_storage_account" "model_storage" {
-  80 │   name                     = "st${replace(var.project_name, "-", "")}${var.environment}"
+  80 │   name                     = substr("st${replace(var.project_name, "-", "")}${var.environment}", 0, 24)
   81 │   resource_group_name      = azurerm_resource_group.main.name
   82 │   location                 = azurerm_resource_group.main.location
   83 │   account_tier             = "Standard"
@@ -50,10 +50,10 @@ Logging should be enabled for at least one storage service type.
 
 See https://avd.aquasec.com/misconfig/azu-0057
 ────────────────────────────────────────
- main.tf:79-91
+ main.tf:79-92
 ────────────────────────────────────────
   79 ┌ resource "azurerm_storage_account" "model_storage" {
-  80 │   name                     = "st${replace(var.project_name, "-", "")}${var.environment}"
+  80 │   name                     = substr("st${replace(var.project_name, "-", "")}${var.environment}", 0, 24)
   81 │   resource_group_name      = azurerm_resource_group.main.name
   82 │   location                 = azurerm_resource_group.main.location
   83 │   account_tier             = "Standard"
@@ -75,13 +75,13 @@ Options include GRS, RAGRS, GZRS, and RAGZRS for geo-redundancy.
 See https://avd.aquasec.com/misconfig/azu-0058
 ────────────────────────────────────────
  main.tf:84
-   via main.tf:79-91 (azurerm_storage_account.model_storage)
+   via main.tf:79-92 (azurerm_storage_account.model_storage)
 ────────────────────────────────────────
   79   resource "azurerm_storage_account" "model_storage" {
   ..   
   84 [   account_replication_type = "LRS"
   ..   
-  91   }
+  92   }
 ────────────────────────────────────────
 
 
@@ -94,10 +94,10 @@ They also provide greater flexibility to audit the encryption keys that are used
 
 See https://avd.aquasec.com/misconfig/azu-0060
 ────────────────────────────────────────
- main.tf:79-91
+ main.tf:79-92
 ────────────────────────────────────────
   79 ┌ resource "azurerm_storage_account" "model_storage" {
-  80 │   name                     = "st${replace(var.project_name, "-", "")}${var.environment}"
+  80 │   name                     = substr("st${replace(var.project_name, "-", "")}${var.environment}", 0, 24)
   81 │   resource_group_name      = azurerm_resource_group.main.name
   82 │   location                 = azurerm_resource_group.main.location
   83 │   account_tier             = "Standard"
@@ -119,10 +119,10 @@ This provides double encryption for enhanced security.
 
 See https://avd.aquasec.com/misconfig/azu-0061
 ────────────────────────────────────────
- main.tf:79-91
+ main.tf:79-92
 ────────────────────────────────────────
   79 ┌ resource "azurerm_storage_account" "model_storage" {
-  80 │   name                     = "st${replace(var.project_name, "-", "")}${var.environment}"
+  80 │   name                     = substr("st${replace(var.project_name, "-", "")}${var.environment}", 0, 24)
   81 │   resource_group_name      = azurerm_resource_group.main.name
   82 │   location                 = azurerm_resource_group.main.location
   83 │   account_tier             = "Standard"
@@ -141,17 +141,17 @@ VMs without NSGs are exposed without traffic control or inspection.
 
 See https://avd.aquasec.com/misconfig/azu-0068
 ────────────────────────────────────────
- main.tf:132-144
+ main.tf:134-147
 ────────────────────────────────────────
- 132 ┌ resource "azurerm_network_interface" "llm_nic" {
- 133 │   name                = "nic-${var.project_name}-${var.environment}-llm"
- 134 │   location            = azurerm_resource_group.main.location
- 135 │   resource_group_name = azurerm_resource_group.main.name
- 136 │ 
- 137 │   ip_configuration {
- 138 │     name                          = "internal"
- 139 │     subnet_id                     = azurerm_subnet.private.id
- 140 └     private_ip_address_allocation = "Dynamic"
+ 134 ┌ resource "azurerm_network_interface" "llm_nic" {
+ 135 │   name                = "nic-${var.project_name}-${var.environment}-llm"
+ 136 │   location            = azurerm_resource_group.main.location
+ 137 │   resource_group_name = azurerm_resource_group.main.name
+ 138 │ 
+ 139 │   ip_configuration {
+ 140 │     name                          = "internal"
+ 141 │     subnet_id                     = azurerm_subnet.private.id
+ 142 └     private_ip_address_allocation = "Static"
  ...   
 ────────────────────────────────────────
 

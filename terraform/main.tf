@@ -77,7 +77,7 @@ resource "azurerm_subnet_network_security_group_association" "private" {
 }
 
 resource "azurerm_storage_account" "model_storage" {
-  name                     = "st${replace(var.project_name, "-", "")}${var.environment}"
+  name                     = substr("st${replace(var.project_name, "-", "")}${var.environment}", 0, 24)
   resource_group_name      = azurerm_resource_group.main.name
   location                 = azurerm_resource_group.main.location
   account_tier             = "Standard"
@@ -86,6 +86,7 @@ resource "azurerm_storage_account" "model_storage" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
   public_network_access_enabled   = false
+  shared_access_key_enabled       = false
 
   tags = local.common_tags
 }
@@ -115,6 +116,7 @@ resource "azurerm_servicebus_namespace" "main" {
   location            = azurerm_resource_group.main.location
   resource_group_name = azurerm_resource_group.main.name
   sku                 = "Standard"
+  minimum_tls_version = "1.2"
 
   tags = local.common_tags
 }
@@ -137,7 +139,8 @@ resource "azurerm_network_interface" "llm_nic" {
   ip_configuration {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.private.id
-    private_ip_address_allocation = "Dynamic"
+    private_ip_address_allocation = "Static"
+    private_ip_address            = "10.20.2.10"
   }
 
   tags = local.common_tags
@@ -147,7 +150,7 @@ resource "azurerm_linux_virtual_machine" "llm_vm" {
   name                = "vm-${var.project_name}-${var.environment}-llm"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  size                = "Standard_NC6" # GPU-enabled VM
+  size                = "Standard_NC4as_T4_v3" # T4 GPU VM suitable for lightweight LLM inference
 
   admin_username = "azureuser"
 
@@ -167,7 +170,8 @@ resource "azurerm_linux_virtual_machine" "llm_vm" {
 
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+    storage_account_type = "Premium_LRS"
+    disk_size_gb         = 128
   }
 
   source_image_reference {

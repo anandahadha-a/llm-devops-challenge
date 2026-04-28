@@ -21,3 +21,8 @@ output "servicebus_namespace" {
 output "vm_name" {
   value = azurerm_linux_virtual_machine.llm_vm.name
 }
+
+output "vm_private_ip" {
+  description = "Private IP address of the LLM VM."
+  value       = azurerm_network_interface.llm_nic.private_ip_address
+}
