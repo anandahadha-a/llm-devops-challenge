@@ -69,6 +69,49 @@ The LLM VM processes potentially sensitive inference requests. Exposing it direc
 
 ---
 
+## Inference Serving Framework
+
+### Framework Selection
+
+Three frameworks were evaluated for serving Mistral-7B-Instruct on the T4 GPU:
+
+| Framework | Assessment | Verdict |
+|---|---|---|
+| **vLLM** | Async-native, continuous batching, OpenAI-compatible API, PagedAttention for VRAM efficiency. Designed for high-throughput production workloads. | **Chosen** |
+| **Ollama** | Simple setup, interactive single-user use. No request batching, no async job processing — cannot saturate a GPU across concurrent queue jobs. | Rejected |
+| **TGI (Text Generation Inference)** | HuggingFace's production server. Strong streaming support but tighter HuggingFace ecosystem coupling and higher operational complexity for a batch workload. | Rejected |
+
+**Decision: vLLM**
+
+Key reasons:
+- **Continuous batching** — vLLM processes multiple queued requests in a single GPU forward pass, maximising T4 utilisation. Without this, each job occupies the GPU exclusively even when the prompt is short.
+- **PagedAttention** — more efficient GPU memory management, allowing larger effective context windows within the T4's 16 GB VRAM.
+- **OpenAI-compatible API** — the worker calls `POST /v1/completions` on localhost. If self-hosting is discontinued, the same interface works against Azure OpenAI or any OpenAI-compatible provider with a single config change.
+- **Async-friendly** — vLLM handles concurrent requests internally; the worker pulls from Service Bus and submits to vLLM without needing to manage GPU locking itself.
+
+### Model Selection: Mistral-7B-Instruct
+
+- Fits in T4 16 GB VRAM at FP16 (~14 GB loaded) with headroom for batching
+- Strong instruction-following performance for SMB workflow automation tasks (summarisation, extraction, classification)
+- Apache 2.0 licence — commercially usable without restriction or royalties
+
+### Worker Integration Pattern
+
+```
+Service Bus Queue
+      │
+      ▼
+Python Worker Process
+  - Pulls message from queue (with lock)
+  - POST /v1/completions → vLLM (localhost:8000)
+  - On success: complete message, publish result
+  - On failure: abandon message → retry → DLQ after 5 attempts
+```
+
+vLLM runs as a systemd service on the GPU VM, started at boot after the model is loaded from Blob Storage.
+
+---
+
 ## Scaling Strategy
 
 ### Scaling Signal
@@ -80,6 +123,13 @@ Queue depth (number of pending messages in Service Bus) is the primary scaling s
 | < 50 messages | 1 VM (baseline, always-on) |
 | 50–200 messages | Scale to 2 VMs |
 | > 200 messages | Scale to 4 VMs |
+
+**Cooldown periods:**
+
+| Event | Cooldown | Reason |
+|---|---|---|
+| Scale-out | 10 minutes | New GPU VMs take 2–5 min to start + 1–3 min model load. Prevents launching a second wave before the first wave is processing. |
+| Scale-in | 30 minutes | Avoids removing VMs too quickly after a spike subsides. GPU cold start cost makes premature scale-in expensive. |
 
 ### Cold Start Problem
 

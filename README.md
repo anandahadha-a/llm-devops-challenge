@@ -117,6 +117,8 @@ terraform plan
 
 > `terraform apply` is not required for this challenge.
 
+A representative dry-run plan output is available at [`terraform/plan.txt`](terraform/plan.txt). It shows all 16 resources that would be created, including resolved names, tags, and configuration values.
+
 ---
 
 ## Security Scanning
@@ -137,10 +139,11 @@ Full scan outputs are in [`scans/`](scans/).
 
 ## Documentation
 
-- [`docs/design.md`](docs/design.md) — Architecture and scaling strategy
-- [`docs/cost-analysis.md`](docs/cost-analysis.md) — Cost estimation and optimisation
-- [`docs/runbook.md`](docs/runbook.md) — Monitoring and incident handling
-- [`docs/security.md`](docs/security.md) — Security risks and mitigations
+- [`docs/design.md`](docs/design.md) — Architecture decisions, serving framework, and scaling strategy
+- [`docs/cost-analysis.md`](docs/cost-analysis.md) — Cost breakdown, build vs. buy analysis, and budget alerts
+- [`docs/runbook.md`](docs/runbook.md) — Monitoring, GPU-specific alerts, and incident handling
+- [`docs/security.md`](docs/security.md) — Security risks, IaC scan findings, and data handling
+- [`docs/reflection.md`](docs/reflection.md) — Customer data privacy guarantees and trust model
 
 ---
 
